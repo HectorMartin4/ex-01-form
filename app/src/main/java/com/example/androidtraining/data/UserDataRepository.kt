@@ -12,4 +12,8 @@ class UserDataRepository(private val localDataSource: UserXmlLocalDataSource) : 
     override fun save(user: User): Either<ErrorApp, User> {
         return localDataSource.save(user)
     }
+
+    override fun getAll(): Either<ErrorApp, List<User>> {
+        return localDataSource.getAll()
+    }
 }

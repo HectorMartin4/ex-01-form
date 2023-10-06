@@ -12,12 +12,15 @@ import androidx.activity.viewModels
 import androidx.lifecycle.Observer
 import com.example.androidtraining.R
 import com.example.androidtraining.data.UserDataRepository
+import com.example.androidtraining.domain.GetUserUseCase
 import com.example.androidtraining.domain.SaveUserUseCase
 
 class MainActivity : AppCompatActivity() {
 
     val viewModels: MainViewModel by lazy {
-        MainViewModel(SaveUserUseCase(UserDataRepository(UserXmlLocalDataSource(this))))
+        MainViewModel(
+            SaveUserUseCase(UserDataRepository(UserXmlLocalDataSource(this))),
+            GetUserUseCase(UserDataRepository(UserXmlLocalDataSource(this))))
     }
 
 
@@ -25,14 +28,16 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         saveUser()
-        getUsers()
+        clean()
+        setupObservers()
+        viewModels.loadUser()
     }
 
     fun saveUser() {
         val name = findViewById<EditText>(R.id.name).text
         val surname = findViewById<EditText>(R.id.surname).text
 
-        findViewById<Button>(R.id.buttonSave).setOnClickListener {
+        findViewById<Button>(R.id.button_save).setOnClickListener {
 
             UserXmlLocalDataSource(this).save(User("$name", "$surname"))
             viewModels.saveUser(User("$name", "$surname"))
@@ -42,27 +47,29 @@ class MainActivity : AppCompatActivity() {
 
     fun getUsers() {
 
-        findViewById<Button>(R.id.buttonGet).setOnClickListener {
-
+        findViewById<Button>(R.id.button_get).setOnClickListener {
             val users = UserXmlLocalDataSource(this).getAll()
 
             Log.d("@dev", "$users")
 
         }
-
     }
 
 
     fun setupObservers() {
-        val observer = Observer<MainViewModel.UiState> {
-            it.user?.apply{
-                bindData(this)
+
+        val observer = Observer<MainViewModel.UiState> {observer ->
+            findViewById<Button>(R.id.button_get).setOnClickListener{
+                Log.d("@dev", "User: $observer")
             }
         }
         viewModels.uiState.observe(this, observer)
     }
 
-    private  fun  bindData(user: User) {
-
+    fun clean(){
+        findViewById<Button>(R.id.button_clean).setOnClickListener{
+            findViewById<EditText>(R.id.name).setText("")
+            findViewById<EditText>(R.id.surname).setText("")
+        }
     }
 }
